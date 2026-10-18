@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hmac
+import os
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -19,6 +22,19 @@ st.set_page_config(page_title="Day Trader Dashboard", page_icon="📈", layout="
 def md(text: str) -> None:
     """st.markdown treats paired $ signs as LaTeX; escape them so prices render."""
     st.markdown(text.replace("$", "\\$"))
+
+
+# Optional password gate for public deployments: set APP_PASSWORD to enable it.
+_password = os.environ.get("APP_PASSWORD")
+if _password and not st.session_state.get("authed"):
+    st.title("📈 Day Trader Dashboard")
+    entered = st.text_input("Password", type="password")
+    if entered and hmac.compare_digest(entered, _password):
+        st.session_state.authed = True
+        st.rerun()
+    if entered:
+        st.error("Wrong password.")
+    st.stop()
 
 # ----------------------------------------------------------------- sidebar
 with st.sidebar:
